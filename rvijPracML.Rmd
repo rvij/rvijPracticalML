@@ -5,7 +5,7 @@ date: "July 20, 2014"
 output: html_document
 ---
 
-## Following steps will be used to apply ML to the given problem
+### Following steps will be used to apply ML to the given problem
 * Load raw data into R data-frame
 * Look at the summary of the data and check for data quality
 * use any visualization techniques to understand data relationships
@@ -15,7 +15,7 @@ output: html_document
 * Choose the best algorithm 
 * Predict values for the chosen algorithm to the test dataset
 
-## Load Data into R data-frame and run Summary
+### Load Data into R data-frame and run Summary
 ```{r}
 library(caret); library(ggplot2)
 set.seed(5469)
@@ -23,6 +23,7 @@ set.seed(5469)
 # Load the test file:
 dataset  <- read.csv("../pml-training.csv", na.strings=c("NA",""), strip.white=TRUE)
 dim(dataset)
+dataset_test <- read.csv("../pml-testing.csv", na.strings=c("NA",""), strip.white=T)
 
 # Check the summary of the data frame.
 summary(dataset)
@@ -32,20 +33,28 @@ summary(dataset)
 
 ```
 
-## Clean data and create a Tidy dataset
+### Clean data and create a Tidy dataset
 
 ```{r}
-# Cleaning the data:
-isNAcolumns <- apply(dataset, 2, function(x) { sum(is.na(x)) })
+createTidyDataset = function(data){
+  # Cleaning the data:
+  isNAcolumns <- apply(data, 2, function(x) { sum(is.na(x)) })
+  
+  tidyData <- subset(data[, which(isNAcolumns == 0)], 
+                     select=-c(X, user_name, new_window, num_window, 
+                               raw_timestamp_part_1, raw_timestamp_part_2, 
+                               cvtd_timestamp))
+}
 
-dataset <- subset(dataset[, which(isNAcolumns == 0)], 
-                  select=-c(X, user_name, new_window, num_window, 
-                            raw_timestamp_part_1, raw_timestamp_part_2, 
-                            cvtd_timestamp))
+dataset <- createTidyDataset(dataset)
+  
 dim(dataset)
+
+dataset_test <- createTidyDataset(dataset_test)
+dim(dataset_test)
 ```
 
-## Create a training and validation dataset also create folds for 10-fold cross validation
+### Create a training and validation dataset also create folds for 10-fold cross validation
 
 ```{r}
 inTrain <- createDataPartition(dataset$classe, p=0.8, list=FALSE)
