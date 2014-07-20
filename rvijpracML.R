@@ -28,6 +28,7 @@ dim(dataset)
 
 dataset_test <- createTidyDataset(dataset_test)
 
+dim(dataset_test)
 
 ## Dimensionality of the new dataset that will be used for prediction
 # Spliting the dataset:
