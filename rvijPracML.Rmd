@@ -1,0 +1,58 @@
+---
+title: "rvijPracticalML sumitted for Coursera Practical ML"
+author: "Rajeev Vij"
+date: "July 20, 2014"
+output: html_document
+---
+
+## Following steps will be used to apply ML to the given problem
+* Load raw data into R data-frame
+* Look at the summary of the data and check for data quality
+* use any visualization techniques to understand data relationships
+* Prepare clean tidy dataset for analysis
+* Use caret package to divide dataset into training and validation set
+* Apply different ML algorithms to training dataset and measure its accuracy
+* Choose the best algorithm 
+* Predict values for the chosen algorithm to the test dataset
+
+## Load Data into R data-frame and run Summary
+```{r}
+library(caret); library(ggplot2)
+set.seed(5469)
+
+# Load the test file:
+dataset  <- read.csv("../pml-training.csv", na.strings=c("NA",""), strip.white=TRUE)
+dim(dataset)
+
+# Check the summary of the data frame.
+summary(dataset)
+
+# There are large number of attributes that have NAs, we will ignore those variable as they may not contribute to 
+# any predictive capability, also there are some time variables that will not be used
+
+```
+
+## Clean data and create a Tidy dataset
+
+```{r}
+# Cleaning the data:
+isNAcolumns <- apply(dataset, 2, function(x) { sum(is.na(x)) })
+
+dataset <- subset(dataset[, which(isNAcolumns == 0)], 
+                  select=-c(X, user_name, new_window, num_window, 
+                            raw_timestamp_part_1, raw_timestamp_part_2, 
+                            cvtd_timestamp))
+dim(dataset)
+```
+
+## Create a training and validation dataset also create folds for 10-fold cross validation
+
+```{r}
+inTrain <- createDataPartition(dataset$classe, p=0.8, list=FALSE)
+train_set <- dataset[inTrain,]
+validation_set <- dataset[-inTrain,]
+
+# Cross-Validation folds 
+folds <- createFolds(y=dataset$classe,k=10, list=TRUE,returnTrain=TRUE)
+sapply(folds,length)
+```
