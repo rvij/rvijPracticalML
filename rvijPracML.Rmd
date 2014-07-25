@@ -65,3 +65,34 @@ validation_set <- dataset[-inTrain,]
 folds <- createFolds(y=dataset$classe,k=10, list=TRUE,returnTrain=TRUE)
 sapply(folds,length)
 ```
+
+```
+# Test 1: Boosting classifier using cross validation contol
+```{r}
+ctrl <- trainControl(allowParallel=TRUE, method="cv")
+bomodel <- train(classe ~ ., data=train_set, model="gbm", trControl=ctrl)
+predictor <- predict(bomodel, newdata=validation_set)
+
+# Error on valid_set:
+sum(predictor == validation_set$classe) / length(predictor)
+confusionMatrix(validation_set$classe, predictor)$table
+
+# Classification for test_set:
+
+predict(bomodel, newdata=dataset_test)
+```
+
+# Test 2: Random forest classifier using cross validation contol
+```{r}
+ctrl <- trainControl(allowParallel=TRUE, method="cv")
+rfmodel <- train(classe ~ ., data=train_set, model="rf", trControl=ctrl)
+predictor <- predict(rfmodel, newdata=validation_set)
+
+# Error on valid_set:
+sum(predictor == validation_set$classe) / length(predictor)
+confusionMatrix(validation_set$classe, predictor)$table
+
+# Classification for test_set:
+
+predict(rfmodel, newdata=dataset_test)
+```
