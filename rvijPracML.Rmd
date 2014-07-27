@@ -67,7 +67,7 @@ sapply(folds,length)
 ```
 
 ```
-# Test 1: Boosting classifier using cross validation contol
+## Test 1: Boosting classifier using cross validation contol
 ```{r}
 ctrl <- trainControl(allowParallel=TRUE, method="cv")
 bomodel <- train(classe ~ ., data=train_set, model="gbm", trControl=ctrl)
@@ -82,7 +82,7 @@ confusionMatrix(validation_set$classe, predictor)$table
 predict(bomodel, newdata=dataset_test)
 ```
 
-# Test 2: Random forest classifier using cross validation contol
+## Test 2: Random forest classifier using cross validation contol
 ```{r}
 ctrl <- trainControl(allowParallel=TRUE, method="cv")
 rfmodel <- train(classe ~ ., data=train_set, model="rf", trControl=ctrl)
@@ -92,7 +92,44 @@ predictor <- predict(rfmodel, newdata=validation_set)
 sum(predictor == validation_set$classe) / length(predictor)
 confusionMatrix(validation_set$classe, predictor)$table
 
-# Classification for test_set:
-
+# # Classification for test_set:
+# 
 predict(rfmodel, newdata=dataset_test)
 ```
+
+## Both Random Forest and Boosting algorithm gives good results with > 99% cross validation accuracy.
+## Random forest gives somewhat betetr results.
+## However because of large number of variables and large dataset these models take some time to train
+## We will now try SVM but on shorter list of variables.
+## We will pick TopTen variables from Random Forest model and train an SVM on those variables only.
+# Train the SVM on the dataset reduce to Top ten variables
+```{r}
+load("rfmodel.rda")
+impvar <- varImp(rfmodel)
+
+impvar$importance$var <- rownames(impvar$importance)
+
+top10var <- impvar$importance[order(impvar$importance$Overall, decreasing = TRUE),c("var")][1:10]
+
+dataset_topten <- subset(dataset, select=c(top10var, "classe"))
+
+dataset_topten_test <- subset(dataset_test, select=c(top10var))
+
+dataset_topten_test$classe <- NA
+
+svm <- train(classe ~ ., data=dataset_topten[inTrain,], model="svm", trControl=ctrl)
+
+predictor_svm <- predict(svm, newdata=validation_set)
+
+sum(predictor_svm == validation_set$classe) / length(predictor_svm)
+confusionMatrix(validation_set$classe, predictor_svm)$table
+
+results <- predict(svm, newdata=dataset_topten_test)
+```
+
+## SVM on Top10 models has very good accuracy and is reasonably fast, we can use this model for implementaiton
+##predicted values from SVM on test dataset are
+```{r}
+results
+```
+

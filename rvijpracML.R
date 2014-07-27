@@ -36,10 +36,58 @@ inTrain <- createDataPartition(dataset$classe, p=0.8, list=FALSE)
 train_set <- dataset[inTrain,]
 validation_set <- dataset[-inTrain,]
 
-# Cross-Validation folds 
-folds <- createFolds(y=dataset$classe,k=10, list=TRUE,returnTrain=TRUE)
-sapply(folds,length)
+# Test 1: Random forest classifier using cross validation contol
+ctrl <- trainControl(allowParallel=TRUE, method="cv")
+rfmodel <- train(classe ~ ., data=train_set, model="rf", trControl=ctrl)
+predictor <- predict(rfmodel, newdata=validation_set)
+
+# Error on valid_set:
+sum(predictor == validation_set$classe) / length(predictor)
+confusionMatrix(validation_set$classe, predictor)$table
+
+# Classification for test_set:
+
+rfpredictions <- predict(rfmodel, newdata=dataset_test)
+
+# Test 3: Implementing Support Vector Machine most important variable for the ramdom forest predictor:
+impvar <- varImp(rfmodel)
+
+impvar$importance$var <- rownames(impvar$importance)
+
+top10var <- impvar$importance[order(impvar$importance$Overall, decreasing = TRUE),c("var")][1:10]
 
 
 
+# Train the SVM on the dataset reduce to Top ten variables
+dataset_topten <- subset(dataset, select=c(top10var, "classe"))
 
+dataset_topten_test <- subset(dataset_test, select=c(top10var))
+
+dataset_topten_test$classe <- NA
+
+dim(dataset_test)
+
+svm <- train(classe ~ ., data=dataset_topten[inTrain,], model="svm", trControl=ctrl)
+
+predictor_svm <- predict(svm, newdata=validation_set)
+
+
+sum(predictor_svm == validation_set$classe) / length(predictor_svm)
+confusionMatrix(validation_set$classe, predictor_svm)$table
+
+results <- predict(svm, newdata=dataset_test)
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(rfpredictions)
+
+library(RWeka)
+
+write.arff(dataset_topten, file="datasetTop10.arff")
+write.arff(dataset_topten_test, file="dataset_test.arff")
