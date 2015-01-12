@@ -459,8 +459,7 @@ folds &lt;- createFolds(y=dataset$classe,k=10, list=TRUE,returnTrain=TRUE)
 sapply(folds,length)</code></pre>
 <pre><code>## Fold01 Fold02 Fold03 Fold04 Fold05 Fold06 Fold07 Fold08 Fold09 Fold10 
 ##  17659  17659  17660  17658  17661  17660  17662  17661  17659  17659</code></pre>
-
-<p>``` # Test 1: Boosting classifier using cross validation contol</p>
+<p>``` ## Test 1: Boosting classifier using cross validation contol</p>
 <pre class="r"><code>ctrl &lt;- trainControl(allowParallel=TRUE, method=&quot;cv&quot;)
 bomodel &lt;- train(classe ~ ., data=train_set, model=&quot;gbm&quot;, trControl=ctrl)</code></pre>
 <pre><code>## Loading required package: randomForest
@@ -485,8 +484,8 @@ predict(bomodel, newdata=dataset_test)</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
 </div>
-<div id="test-2-random-forest-classifier-using-cross-validation-contol" class="section level1">
-<h1>Test 2: Random forest classifier using cross validation contol</h1>
+<div id="test-2-random-forest-classifier-using-cross-validation-contol" class="section level2">
+<h2>Test 2: Random forest classifier using cross validation contol</h2>
 <pre class="r"><code>ctrl &lt;- trainControl(allowParallel=TRUE, method=&quot;cv&quot;)
 rfmodel &lt;- train(classe ~ ., data=train_set, model=&quot;rf&quot;, trControl=ctrl)
 predictor &lt;- predict(rfmodel, newdata=validation_set)
@@ -502,12 +501,12 @@ sum(predictor == validation_set$classe) / length(predictor)</code></pre>
 ##          C    0    3  679    2    0
 ##          D    0    0    1  642    0
 ##          E    0    0    1    4  716</code></pre>
-<pre class="r"><code># Classification for test_set:
-
+<pre class="r"><code># # Classification for test_set:
+# 
 predict(rfmodel, newdata=dataset_test)</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
-
+</div>
 <div id="both-random-forest-and-boosting-algorithm-gives-good-results-with-99-cross-validation-accuracy." class="section level2">
 <h2>Both Random Forest and Boosting algorithm gives good results with &gt; 99% cross validation accuracy.</h2>
 </div>
@@ -526,11 +525,9 @@ predict(rfmodel, newdata=dataset_test)</code></pre>
 <div id="train-the-svm-on-the-dataset-reduce-to-top-ten-variables" class="section level1">
 <h1>Train the SVM on the dataset reduce to Top ten variables</h1>
 <pre class="r"><code>load(&quot;rfmodel.rda&quot;)
-impvar &lt;- varImp(rfmodel)</code></pre>
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-7
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>impvar$importance$var &lt;- rownames(impvar$importance)
+impvar &lt;- varImp(rfmodel)
+
+impvar$importance$var &lt;- rownames(impvar$importance)
 
 top10var &lt;- impvar$importance[order(impvar$importance$Overall, decreasing = TRUE),c(&quot;var&quot;)][1:10]
 
@@ -545,15 +542,15 @@ svm &lt;- train(classe ~ ., data=dataset_topten[inTrain,], model=&quot;svm&quot;
 predictor_svm &lt;- predict(svm, newdata=validation_set)
 
 sum(predictor_svm == validation_set$classe) / length(predictor_svm)</code></pre>
-<pre><code>## [1] 0.9898</code></pre>
+<pre><code>## [1] 0.9929</code></pre>
 <pre class="r"><code>confusionMatrix(validation_set$classe, predictor_svm)$table</code></pre>
 <pre><code>##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1112    4    0    0    0
-##          B    4  740   11    4    0
-##          C    0    3  679    2    0
-##          D    0    1    1  640    1
-##          E    0    3    3    3  712</code></pre>
+##          A 1114    1    1    0    0
+##          B    4  748    6    1    0
+##          C    0    4  679    1    0
+##          D    0    0    2  640    1
+##          E    0    3    2    2  714</code></pre>
 <pre class="r"><code>results &lt;- predict(svm, newdata=dataset_topten_test)</code></pre>
 <div id="svm-on-top10-models-has-very-good-accuracy-and-is-reasonably-fast-we-can-use-this-model-for-implementaiton" class="section level2">
 <h2>SVM on Top10 models has very good accuracy and is reasonably fast, we can use this model for implementaiton</h2>

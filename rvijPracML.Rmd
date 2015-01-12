@@ -21,9 +21,9 @@ library(caret); library(ggplot2)
 set.seed(5469)
 
 # Load the test file:
-dataset  <- read.csv("../pml-training.csv", na.strings=c("NA",""), strip.white=TRUE)
+dataset  <- read.csv("./pml-training.csv", na.strings=c("NA",""), strip.white=TRUE)
 dim(dataset)
-dataset_test <- read.csv("../pml-testing.csv", na.strings=c("NA",""), strip.white=T)
+dataset_test <- read.csv("./pml-testing.csv", na.strings=c("NA",""), strip.white=T)
 
 # Check the summary of the data frame.
 summary(dataset)
